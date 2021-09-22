@@ -29,6 +29,9 @@ namespace Updater
 
             MoveTempToBaseDir();
 
+            LogInformation($"Starting application");
+            Process.Start($"{APPLICATION_NAME}.exe");
+
             Thread.Sleep(1000);
             LogInformation($"Finished updater");
         }
