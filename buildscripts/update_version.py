@@ -27,13 +27,13 @@ for node in root.iter():
         node.text = node.text.strip()
     # set version
     if node.tag == "Version":
-        node.text = args.tagname
+        node.text = tagname
         tagWasSet = True
 # add version node
 if not tagWasSet:
     propertyGroup = root.find("./PropertyGroup") # XPath expression (Project is root node)
     versionNode = ET.Element("Version")
-    versionNode.text = args.tagname
+    versionNode.text = tagname
     propertyGroup.append(versionNode)
 
 with open(args.project_file, "wb") as file:
