@@ -9,6 +9,8 @@ parser.add_argument('--tagname', help='tag name', required=True)
 parser.add_argument('--project-file', help='project file with the project number that needs to be updated', required=True)
 args = parser.parse_args()
 
+tagname = args.tagname.replace("v", "")
+
 if not os.path.exists(args.project_file):
     sys.exit(f"Invalid project file {args.project_file}")
 
