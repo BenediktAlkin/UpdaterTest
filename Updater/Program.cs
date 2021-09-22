@@ -1,36 +1,90 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading;
 
 namespace Updater
 {
     public class Program
     {
         public const string TEMP_DIR = "temp";
-        private const string DIR_IN_ZIP = "Application";
+        private const string APPLICATION_NAME = "Application";
+        private const string UPDATER_NAME = "Updater";
+
+        private static readonly Action<string> LogInformation = Console.WriteLine;
+        private static readonly Action<string> LogError = Console.WriteLine;
 
         public static void Main(string[] args)
         {
+            Console.Title = $"{APPLICATION_NAME} {UPDATER_NAME}";
+            Console.CursorVisible = false;
+
+            // log version
             var version = typeof(Program).Assembly.GetName().Version;
-            Console.WriteLine($"Updater {version}");
+            LogInformation($"Updater {version}");
 
-            var path = Path.Combine(TEMP_DIR, DIR_IN_ZIP);
+            int? procId = args.Length > 0 ? int.Parse(args[0]) : null;
+            TerminateApplication(procId);
 
+            MoveTempToBaseDir();
+
+            LogInformation($"Finished updater");
+        }
+
+        private static void TerminateApplication(int? procId)
+        {
+            // wait application to exit
+            Thread.Sleep(1000);
+            if (procId == null) return;
+
+            try
+            {
+                // kill application
+                if (Process.GetProcesses().Any(p => p.Id == procId))
+                {
+                    Process.GetProcessById(procId.Value).Kill();
+                    LogInformation("Killed application process");
+                }
+            }
+            catch (Exception e)
+            {
+                LogError($"Failed to terminate application: {e.Message}");
+            }
+        }
+
+        private static void MoveTempToBaseDir()
+        {
+            // move everything in TEMP_DIR/APPLICATION_NAME to base path
+            var path = Path.Combine(TEMP_DIR, APPLICATION_NAME);
             foreach (var dir in Directory.GetDirectories(path))
             {
-                Console.WriteLine($"Moving dir {dir}");
                 var dstPath = dir[(path.Length + 1)..^0];
-                if (Directory.Exists(dstPath))
-                    Directory.Delete(dstPath, true);
-                Directory.Move(dir, dstPath);
+                try
+                {
+                    if (Directory.Exists(dstPath))
+                        Directory.Delete(dstPath, true);
+                    Directory.Move(dir, dstPath);
+                    LogInformation($"Updated directory {dstPath}");
+                }
+                catch (Exception e)
+                {
+                    LogError($"Failed to copy directory {dstPath}: {e.Message}");
+                }
             }
-            foreach(var file in Directory.GetFiles(path))
+            foreach (var file in Directory.GetFiles(path))
             {
-                Console.WriteLine($"Moving file {file}");
                 var dstPath = file[(path.Length + 1)..^0];
-                File.Move(file, dstPath, true);
+                try
+                {
+                    File.Move(file, dstPath, true);
+                    LogInformation($"Updated file {dstPath}");
+                }
+                catch (Exception e)
+                {
+                    LogError($"Failed to copy file {dstPath}: {e.Message}");
+                }
             }
-
-            Console.WriteLine($"Finished updating");
         }
     }
 }
