@@ -17,6 +17,7 @@ namespace Updater
 
             foreach (var dir in Directory.GetDirectories(path))
             {
+                Console.WriteLine($"Moving dir {dir}");
                 var dstPath = dir[(path.Length + 1)..^0];
                 if (Directory.Exists(dstPath))
                     Directory.Delete(dstPath, true);
@@ -24,6 +25,7 @@ namespace Updater
             }
             foreach(var file in Directory.GetFiles(path))
             {
+                Console.WriteLine($"Moving file {file}");
                 var dstPath = file[(path.Length + 1)..^0];
                 File.Move(file, dstPath, true);
             }

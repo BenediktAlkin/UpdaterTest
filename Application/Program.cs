@@ -9,6 +9,7 @@ namespace Application
         {
             var version = typeof(Program).Assembly.GetName().Version;
             Console.WriteLine($"Application {version}");
+            Console.ReadLine();
         }
     }
 }
