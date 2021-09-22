@@ -29,6 +29,8 @@ namespace Updater
                 var dstPath = file[(path.Length + 1)..^0];
                 File.Move(file, dstPath, true);
             }
+
+            Console.WriteLine($"Finished updating");
         }
     }
 }
