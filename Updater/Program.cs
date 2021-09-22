@@ -29,6 +29,7 @@ namespace Updater
 
             MoveTempToBaseDir();
 
+            Thread.Sleep(1000);
             LogInformation($"Finished updater");
         }
 
