@@ -73,10 +73,10 @@ jobs:
     
       # publish program to {application-name}/{os_name}
       - name: publish program ${{ matrix.name }}
-        run: dotnet publish ${{ env.application-name }} --configuration ${{ env.build-config }} -o ${{ env.application-name }}/${{ matrix.name }}
+        run: dotnet publish ${{ env.application-name }} --configuration ${{ env.build-config }} -r ${{ matrix.RID }} --no-self-contained -o ${{ env.application-name }}/${{ matrix.name }}
       # publish updater to {application-name}/{os_name}
       - name: publish updater ${{ matrix.name }}
-        run: dotnet publish ${{ env.updater-name }} --configuration ${{ env.build-config }} -o ${{ env.application-name }}/${{ matrix.name }}
+        run: dotnet publish ${{ env.updater-name }} --configuration ${{ env.build-config }} -r ${{ matrix.RID }} --no-self-contained -o ${{ env.application-name }}/${{ matrix.name }}
       # zip {application-name}/{os_name} into a zip file where the root folder has name {application-name}
       - name: zip ${{ matrix.name }} build
         uses: papeloto/action-zip@v1
