@@ -6,66 +6,97 @@ on:
       - "v*.*.*"
 
 env:
-  application_name: Application
-  updater_name: Updater
-  build_config: Release
+  application-name: Application
+  updater-name: Updater
+  build-config: Release
 
 jobs:
-  build:
-
+  update-version-in-source:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout
+    - name: checkout
       uses: actions/checkout@v2
 
     # prepare version update
-    - name: Extract tag
+    - name: extract tag
       uses: olegtarasov/get-tag@v2.1
       id: tagName
-    - name: Setup python
+    - name: setup python
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
     # update versions locally
-    - name: Update application version
-      run: python buildscripts/update_version.py --tagname ${{ steps.tagName.outputs.tag }} --project-file ${{ env.application_name }}/${{ env.application_name }}.csproj
-    - name: Update updater version
-      run: python buildscripts/update_version.py --tagname ${{ steps.tagName.outputs.tag }} --project-file ${{ env.updater_name }}/${{ env.updater_name }}.csproj
-    - name: Push updated version number
+    - name: update application version
+      run: python buildscripts/update_version.py --tagname ${{ steps.tagName.outputs.tag }} --project-file ${{ env.application-name }}/${{ env.application-name }}.csproj
+    - name: update updater version
+      run: python buildscripts/update_version.py --tagname ${{ steps.tagName.outputs.tag }} --project-file ${{ env.updater-name }}/${{ env.updater-name }}.csproj
+    - name: push updated version number
       uses: test-room-7/action-update-file@v1
       with:
           file-path: |
-              ${{ env.application_name }}/${{ env.application_name }}.csproj
-              ${{ env.updater_name }}/${{ env.updater_name }}.csproj
+              ${{ env.application-name }}/${{ env.application-name }}.csproj
+              ${{ env.updater-name }}/${{ env.updater-name }}.csproj
           commit-msg: Update version number
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-
-    # setup runtime
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.x
     
-    # publish program to {application_name}/{build_config}
-    - name: Publish program
-      run: dotnet publish ${{ env.application_name }} --configuration ${{ env.build_config }} -o ${{ env.application_name }}/${{ env.build_config }}
-    # publish updater to {application_name}/{build_config}
-    - name: Publish updater
-      run: dotnet publish ${{ env.updater_name }} --configuration ${{ env.build_config }} -o ${{ env.application_name }}/${{ env.build_config }}
-    
-    
-    
-    # zip {application_name}/{build_config} into a zip file where the root folder has name {application_name}
-    - name: Zip portable build
-      uses: papeloto/action-zip@v1
-      with:
-        files: ${{ env.application_name }}/${{ env.build_config }}
-        dest: Releases/${{ env.application_name }}-${{ steps.tagName.outputs.tag }}.zip
-        recursive: false
-
-    - name: Release build
+    # create empty release
+    - name: create empty release
       uses: softprops/action-gh-release@v1
+
+  
+  create-release:
+    needs: update-version-in-source
+    runs-on: windows-latest
+    strategy: 
+      matrix:
+        include: 
+        - name: Windows
+          RID: win-64
+        - name: Linux
+          RID: linux-x64
+        - name: Mac
+          RID: osx-x64
+    steps:
+      # checkout
+      - name: checkout
+        uses: actions/checkout@v2
+      # extract tag
+      - name: extract tag
+        uses: olegtarasov/get-tag@v2.1
+        id: tagName
+      # setup runtime
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+    
+      # publish program to {application-name}/{os_name}
+      - name: publish program ${{ matrix.name }}
+        run: dotnet publish ${{ env.application-name }} --configuration ${{ env.build-config }} -o ${{ env.application-name }}/${{ matrix.name }}
+      # publish updater to {application-name}/{os_name}
+      - name: publish updater ${{ matrix.name }}
+        run: dotnet publish ${{ env.updater-name }} --configuration ${{ env.build-config }} -o ${{ env.application-name }}/${{ matrix.name }}
+      # zip {application-name}/{os_name} into a zip file where the root folder has name {application-name}
+      - name: zip ${{ matrix.name }} build
+        uses: papeloto/action-zip@v1
+        with:
+          files: ${{ env.application-name }}/${{ matrix.name }}
+          dest: Releases/${{ env.application-name }}-${{ matrix.name }}.zip
+          recursive: false
+
+    - name: update release
+      id: update_release
+      uses: tubone24/update_release@v1.0
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+    - name: add ${{ matrix.name }} to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_token }}
+        TAG_NAME: ${{ steps.tagName.outputs.tag }}
       with:
-        files: Releases/${{ env.application_name }}-${{ steps.tagName.outputs.tag }}.zip
+        upload_url: ${{ steps.update_release.outputs.upload_url }}
+        asset_path: ./Releases/${{ env.application-name }}-${{ matrix.name }}.zip
+        asset_name: ${{ env.application-name }}-${{ matrix.name }}.zip
+        #asset_content_type: ${{ matrix.asset_content_type }}
