@@ -52,7 +52,7 @@ jobs:
       matrix:
         include: 
         - name: windows
-          RID: win-64
+          RID: win-x64
         - name: Linux
           RID: linux-x64
         - name: Mac
