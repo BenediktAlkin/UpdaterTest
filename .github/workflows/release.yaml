@@ -52,10 +52,13 @@ jobs:
       matrix:
         include: 
         - name: windows
+          asset_identifier: "-Windows"
           RID: win-x64
         - name: Linux
+          asset_identifier: "Linux"
           RID: linux-x64
         - name: Mac
+          asset_identifier: "Mac"
           RID: osx-x64
     steps:
       # checkout
@@ -82,7 +85,7 @@ jobs:
         uses: papeloto/action-zip@v1
         with:
           files: ${{ env.application_name }}/${{ matrix.name }}
-          dest: Releases/${{ env.application_name }}-${{ matrix.name }}.zip
+          dest: Releases/${{ env.application_name }}${{ matrix.asset_identifier }}.zip
           recursive: false
 
       - name: update release
@@ -98,5 +101,5 @@ jobs:
         with:
           upload_url: ${{ steps.update_release.outputs.upload_url }}
           asset_path: ./Releases/${{ env.application_name }}-${{ matrix.name }}.zip
-          asset_name: ${{ env.application_name }}-${{ matrix.name }}.zip
+          asset_identifier: ${{ env.application_name }}-${{ matrix.name }}.zip
           asset_content_type: application/zip
