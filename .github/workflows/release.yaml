@@ -64,10 +64,6 @@ jobs:
       # checkout
       - name: checkout
         uses: actions/checkout@v2
-      # extract tag
-      - name: extract tag
-        uses: olegtarasov/get-tag@v2.1
-        id: tagName
       # setup runtime
       - name: Install .NET Core
         uses: actions/setup-dotnet@v1
@@ -88,6 +84,7 @@ jobs:
           dest: Releases/${{ env.application_name }}-${{ matrix.name }}.zip
           recursive: false
 
+      # get release.upload_url
       - name: update release
         id: update_release
         uses: tubone24/update_release@v1.0
@@ -97,7 +94,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
-          TAG_NAME: ${{ steps.tagName.outputs.tag }}
         with:
           upload_url: ${{ steps.update_release.outputs.upload_url }}
           asset_path: ./Releases/${{ env.application_name }}-${{ matrix.name }}.zip
