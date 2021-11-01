@@ -101,5 +101,5 @@ jobs:
         with:
           upload_url: ${{ steps.update_release.outputs.upload_url }}
           asset_path: ./Releases/${{ env.application_name }}-${{ matrix.name }}.zip
-          asset_identifier: ${{ env.application_name }}${{ matrix.asset_identifier }}.zip
+          asset_name: ${{ env.application_name }}${{ matrix.asset_identifier }}.zip
           asset_content_type: application/zip
