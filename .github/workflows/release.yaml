@@ -85,18 +85,18 @@ jobs:
           dest: Releases/${{ env.application-name }}-${{ matrix.name }}.zip
           recursive: false
 
-    - name: update release
-      id: update_release
-      uses: tubone24/update_release@v1.0
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-    - name: add ${{ matrix.name }} to release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.github_token }}
-        TAG_NAME: ${{ steps.tagName.outputs.tag }}
-      with:
-        upload_url: ${{ steps.update_release.outputs.upload_url }}
-        asset_path: ./Releases/${{ env.application-name }}-${{ matrix.name }}.zip
-        asset_name: ${{ env.application-name }}-${{ matrix.name }}.zip
-        #asset_content_type: ${{ matrix.asset_content_type }}
+      - name: update release
+        id: update_release
+        uses: tubone24/update_release@v1.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: add ${{ matrix.name }} to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+          TAG_NAME: ${{ steps.tagName.outputs.tag }}
+        with:
+          upload_url: ${{ steps.update_release.outputs.upload_url }}
+          asset_path: ./Releases/${{ env.application-name }}-${{ matrix.name }}.zip
+          asset_name: ${{ env.application-name }}-${{ matrix.name }}.zip
+          #asset_content_type: ${{ matrix.asset_content_type }}
